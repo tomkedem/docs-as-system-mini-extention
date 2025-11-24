@@ -1,0 +1,46 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+
+# VS Code Extension build artifacts
+out/
+dist/
+*.vsix
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+# logs/
+# *.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code workspace
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# Coverage / Testing
+coverage/
+*.coverage
+*.lcov
+
+# Temporary files
+tmp/
+temp/
+
+# IDE metadata
+.idea/
+
+# NPM cache
+.npm/
+
+# ESLint cache
+.eslintcache

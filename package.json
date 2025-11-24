@@ -1,0 +1,118 @@
+{
+  "name": "docs-as-system-mini",
+  "displayName": "Docs-as-System mini",
+  "description": "A lightweight VS Code extension that helps developers work safely with the Docs-as-System mini methodology. It can initialize a full project structure, validate the project, run the full AI workflow cycle, and support hybrid editing between human and agent.",
+  "version": "0.0.1",
+  "publisher": "TomerKedem",
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "docs-as-system",
+    "ai",
+    "agent",
+    "llm",
+    "workflow",
+    "developer-tools",
+    "prompt-engineering",
+    "init-project",
+    "validation",
+    "orchestration"
+  ],
+  "activationEvents": [
+    "onCommand:docsAsSystemMini.initProject",
+    "onCommand:docsAsSystemMini.validateProject",
+    "onCommand:docsAsSystemMini.runFullCycle",
+    "onCommand:docsAsSystemMini.startHumanEdit",
+    "onCommand:docsAsSystemMini.analyzeHumanChanges",
+    "onCommand:docsAsSystemMini.openQuickStart",
+    "onCommand:docsAsSystemMini.openReadme",
+    "onCommand:docsAsSystemMini.openControlCenter"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "docsAsSystemMini.openControlCenter",
+        "title": "Docs-as-System mini: Open control center"
+      },
+      {
+        "command": "docsAsSystemMini.initProject",
+        "title": "Docs-as-System mini: Initialize project"
+      },
+      {
+        "command": "docsAsSystemMini.validateProject",
+        "title": "Docs-as-System mini: Validate project"
+      },
+      {
+        "command": "docsAsSystemMini.runFullCycle",
+        "title": "Docs-as-System mini: Run full cycle"
+      },
+      {
+        "command": "docsAsSystemMini.startHumanEdit",
+        "title": "Docs-as-System mini: I'm editing manually now"
+      },
+      {
+        "command": "docsAsSystemMini.analyzeHumanChanges",
+        "title": "Docs-as-System mini: Analyze manual changes"
+      },
+      {
+        "command": "docsAsSystemMini.openQuickStart",
+        "title": "Docs-as-System mini: Open Quick Start Guide"
+      },
+      {
+        "command": "docsAsSystemMini.openReadme",
+        "title": "Docs-as-System mini: Open method README"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "docsAsSystemMini",
+          "title": "Docs-as-System mini",
+          "icon": "resources/logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "docsAsSystemMini": [
+        {
+          "id": "docsAsSystemMiniView",
+          "name": "Docs-as-System mini"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.46.3",
+    "eslint": "^9.39.1",
+    "esbuild": "^0.27.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}

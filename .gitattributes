@@ -1,0 +1,39 @@
+# Normalize line endings for all text files
+* text=auto eol=lf
+
+# Source code files
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.d.ts text
+
+# JSON files
+*.json text
+
+# Markdown files
+*.md text
+
+# YAML files
+*.yaml text
+*.yml text
+
+# Shell scripts (important on Windows)
+*.sh text eol=lf
+
+# Treat binary assets as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.vsix binary
+
+# SVG – choose one:
+# If you want diffs on SVGs:
+# *.svg text
+# If you want to treat them as binary (icons only):
+*.svg binary
+
+# VS Code configuration files
+.vscode/* text

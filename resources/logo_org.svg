@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#059611ff"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="18" fill="url(#g)"/>
+  <g fill="#fff">
+    <rect x="28" y="36" width="72" height="10" rx="5" opacity=".95"/>
+    <rect x="28" y="56" width="56" height="10" rx="5" opacity=".9"/>
+    <rect x="28" y="76" width="44" height="10" rx="5" opacity=".85"/>
+  </g>
+  <text x="64" y="108" font-family="Arial,Helvetica,sans-serif" font-size="12" text-anchor="middle" fill="#fff">Docs-as-System</text>
+</svg>
