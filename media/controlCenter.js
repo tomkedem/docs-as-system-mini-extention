@@ -1,6 +1,4 @@
-// media/controlCenter.js
-
-// VS Code API בתוך webview
+// VS Code API inside the webview
 const vscode = acquireVsCodeApi();
 
 function wireButtons() {
@@ -52,7 +50,7 @@ function updateValidateButtonStatus(ok) {
   }
 }
 
-// קבלת הודעות מה־extension
+// Receive messages from the extension
 window.addEventListener("message", event => {
   const message = event.data;
   if (!message || typeof message !== "object") {
@@ -67,7 +65,7 @@ window.addEventListener("message", event => {
 window.addEventListener("DOMContentLoaded", () => {
   wireButtons();
 
-  // מבקש סטטוס נוכחי מה־extension
+  // Ask the extension for initial validation status
   vscode.postMessage({
     type: "ready"
   });

@@ -1,7 +1,10 @@
-/* controlCenter.css */
+* {
+  box-sizing: border-box;
+}
 
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
 }
 
 body {
@@ -17,14 +20,14 @@ body {
 
 .container {
   width: 100%;
-  max-width: 880px;
-  padding: 20px;
+  max-width: 840px;
+  padding: 24px;
 }
 
 .card {
   background: rgba(15, 23, 42, 0.96);
   border-radius: 18px;
-  padding: 20px 20px 16px;
+  padding: 24px 24px 20px;
   box-shadow:
     0 18px 45px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(148, 163, 184, 0.18);
@@ -51,7 +54,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .title-group {
@@ -61,7 +64,7 @@ body {
 }
 
 .title {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.01em;
   display: flex;
@@ -74,7 +77,7 @@ body {
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid rgba(59, 130, 246, 0.7);
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.8);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #93c5fd;
@@ -88,23 +91,23 @@ body {
 .status-card {
   position: relative;
   z-index: 1;
-  margin-top: 6px;
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.96);
-  border: 1px solid rgba(148, 163, 184, 0.45);
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(55, 65, 81, 0.8);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 12px;
 }
 
 .status-main {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .status-row {
@@ -119,14 +122,13 @@ body {
   border-radius: 999px;
   background: radial-gradient(circle at 30% 30%, #bbf7d0, #22c55e);
   box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
-  flex-shrink: 0;
 }
 
 .status-label {
   font-size: 11px;
+  color: #6ee7b7;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #6ee7b7;
 }
 
 .status-note {
@@ -136,45 +138,38 @@ body {
 
 .status-hint {
   font-size: 11px;
-  color: #e5e7eb;
-  opacity: 0.8;
-  white-space: nowrap;
+  color: #6b7280;
 }
 
 .section-title {
   position: relative;
   z-index: 1;
-  margin-top: 10px;
+  margin-top: 12px;
+  margin-bottom: 6px;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: #6b7280;
 }
 
-.section-title span {
-  font-size: 11px;
-  opacity: 0.9;
-}
-
 .flow-grid {
   position: relative;
   z-index: 1;
-  margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
 }
 
 .flow-step {
+  background: rgba(15, 23, 42, 0.94);
   border-radius: 14px;
-  padding: 10px 11px;
-  background: linear-gradient(135deg, #020617, #020617);
+  padding: 12px 12px 10px;
   box-shadow:
-    0 12px 22px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(55, 65, 81, 0.7);
+    0 12px 24px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(55, 65, 81, 0.9);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .flow-header {
@@ -188,38 +183,34 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
 }
 
 .flow-step-index {
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
+  font-weight: 600;
   color: #e5e7eb;
+  background: radial-gradient(circle at 30% 30%, #1d4ed8, #020617);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.9);
   flex-shrink: 0;
 }
 
 .flow-step-title {
   font-size: 13px;
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .flow-step-tag {
   font-size: 10px;
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.8);
   color: #9ca3af;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .flow-desc {
@@ -227,159 +218,80 @@ body {
   color: #9ca3af;
 }
 
+/* Buttons */
+
 .btn {
-  margin-top: 4px;
+  position: relative;
   border: none;
-  border-radius: 10px;
-  padding: 8px 10px;
-  cursor: pointer;
-  background: linear-gradient(135deg, #111827, #020617);
-  color: #e5e7eb;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 12px;
+  padding: 10px 12px;
   text-align: left;
+  cursor: pointer;
+  background: linear-gradient(135deg, #1f2937, #020617);
+  color: #e5e7eb;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
   box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.7),
+    0 10px 18px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(148, 163, 184, 0.28);
+  overflow: hidden;
   transform: translateY(0);
   transition:
     transform 120ms ease,
     box-shadow 120ms ease,
-    background 120ms ease;
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at top left, rgba(96, 165, 250, 0.4), transparent 60%);
+  transition: opacity 140ms ease;
+  pointer-events: none;
 }
 
 .btn:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(191, 219, 254, 0.7);
-  background: linear-gradient(135deg, #0b1120, #020617);
+    0 14px 26px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(191, 219, 254, 0.6);
+  background: linear-gradient(135deg, #111827, #020617);
+}
+
+.btn:hover::before {
+  opacity: 1;
 }
 
 .btn:active {
   transform: translateY(0);
   box-shadow:
-    0 5px 12px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(96, 165, 250, 0.9);
-}
-
-.btn.disabled {
-  opacity: 0.55;
-  cursor: default;
-  box-shadow:
-    0 0 0 1px rgba(75, 85, 99, 0.6);
+    0 4px 12px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(96, 165, 250, 0.8);
 }
 
 .btn-label-main {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .btn-key {
   font-size: 10px;
-  padding: 1px 6px;
+  padding: 2px 6px;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.7);
   color: #9ca3af;
 }
 
-.docs-buttons-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.activity {
-  position: relative;
-  z-index: 1;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(31, 41, 55, 0.9);
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 11px;
-  color: #6b7280;
-  flex-wrap: wrap;
-}
-
-.activity-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 60%;
-}
-
-.activity-title {
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 10px;
-}
-
-.activity-note {
-  color: #9ca3af;
-}
-
-.badge {
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  white-space: nowrap;
-  align-self: flex-end;
-}
-
-@media (max-width: 560px) {
-  .card {
-    padding: 16px 14px 14px;
-  }
-
-  .title {
-    font-size: 17px;
-  }
-
-  .subtitle {
-    font-size: 12px;
-  }
-
-  .flow-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .activity-left {
-    max-width: 100%;
-  }
-
-  .btn-success {
-    background: linear-gradient(135deg, #022c22, #022c22);
-    box-shadow:
-      0 10px 20px rgba(22, 163, 74, 0.6),
-      0 0 0 1px rgba(34, 197, 94, 0.9);
-  }
-
-  .btn-failed {
-    background: linear-gradient(135deg, #450a0a, #111827);
-    box-shadow:
-      0 10px 20px rgba(185, 28, 28, 0.6),
-      0 0 0 1px rgba(248, 113, 113, 0.9);
-  }
-
-  .btn-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 6px;
-    opacity: 0.85;
-  }
-  /* אייקון סטטוס בכפתור validate */
-.btn-label-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
+/* Status icon inside validate button */
 
 .btn-status-icon {
   width: 16px;
@@ -389,7 +301,8 @@ body {
   flex-shrink: 0;
 }
 
-/* מצבי כפתור לפי סטטוס ולידציה */
+/* Validation button states */
+
 .btn-pending {
   box-shadow:
     0 10px 18px rgba(0, 0, 0, 0.6),
@@ -408,4 +321,68 @@ body {
     0 0 0 1px rgba(248, 113, 113, 0.9);
 }
 
+/* Docs buttons row */
+
+.docs-buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Activity */
+
+.activity {
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.activity-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-title {
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.activity-note {
+  max-width: 70%;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+/* Responsive */
+
+@media (max-width: 560px) {
+  .card {
+    padding: 18px 16px 16px;
+  }
+
+  .title {
+    font-size: 17px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .flow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-note {
+    max-width: 100%;
+  }
 }

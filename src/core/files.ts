@@ -6,7 +6,13 @@ import * as https from "https";
 export const GITHUB_RAW_BASE =
   "https://raw.githubusercontent.com/tomkedem/Docs-as-System-mini/main";
 
-export const TEMPLATE_FILES: { src: string; dest: string }[] = [
+export interface TemplateFile {
+  src: string;
+  dest: string;
+}
+
+// Template files to download into the workspace
+export const TEMPLATE_FILES: TemplateFile[] = [
   // project docs
   {
     src: "docs/project/BUSINESS_REQUIREMENTS.mini.md",
@@ -122,6 +128,7 @@ export const TEMPLATE_FILES: { src: string; dest: string }[] = [
   { src: "README.md", dest: "README.md" }
 ];
 
+// Files required by validation
 export const REQUIRED_FILES: string[] = [
   "docs/project/BUSINESS_REQUIREMENTS.mini.md",
   "docs/project/PROJECT_SPEC.mini.md",
@@ -136,6 +143,9 @@ export const REQUIRED_FILES: string[] = [
   "README.md"
 ];
 
+/**
+ * Get the root folder of the current workspace.
+ */
 export function getWorkspaceRoot(): string | undefined {
   const folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) {
@@ -147,6 +157,9 @@ export function getWorkspaceRoot(): string | undefined {
   return folders[0].uri.fsPath;
 }
 
+/**
+ * Download a single file from a URL to a destination path.
+ */
 export function downloadFile(url: string, destPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const dir = path.dirname(destPath);
@@ -178,7 +191,10 @@ export function downloadFile(url: string, destPath: string): Promise<void> {
   });
 }
 
-export async function openQuickStart() {
+/**
+ * Open the Quick Start guide in Markdown preview.
+ */
+export async function openQuickStart(): Promise<void> {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
     return;
@@ -196,7 +212,10 @@ export async function openQuickStart() {
   await vscode.commands.executeCommand("markdown.showPreview", uri);
 }
 
-export async function openReadme() {
+/**
+ * Open the method README in Markdown preview.
+ */
+export async function openReadme(): Promise<void> {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
     return;

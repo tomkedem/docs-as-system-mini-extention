@@ -1,34 +1,31 @@
-// src/core/validation-state.ts
+import * as vscode from "vscode";
 
 export type ValidationStatus = boolean | undefined;
 
-type Listener = (status: ValidationStatus) => void;
-
 let currentStatus: ValidationStatus = undefined;
-const listeners = new Set<Listener>();
 
+const validationEmitter = new vscode.EventEmitter<ValidationStatus>();
+
+/**
+ * Get current validation status.
+ */
 export function getValidationStatus(): ValidationStatus {
   return currentStatus;
 }
 
-export function setValidationStatus(status: boolean): void {
+/**
+ * Set validation status and notify listeners.
+ */
+export function setValidationStatus(status: ValidationStatus): void {
   currentStatus = status;
-  for (const listener of listeners) {
-    try {
-      listener(currentStatus);
-    } catch {
-      // לא נפל בגלל מאזין אחד
-    }
-  }
+  validationEmitter.fire(status);
 }
 
+/**
+ * Subscribe to validation status changes.
+ */
 export function onValidationStatusChange(
-  listener: Listener
-): { dispose: () => void } {
-  listeners.add(listener);
-  return {
-    dispose: () => {
-      listeners.delete(listener);
-    }
-  };
+  listener: (status: ValidationStatus) => void
+): vscode.Disposable {
+  return validationEmitter.event(listener);
 }

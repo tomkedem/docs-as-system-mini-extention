@@ -14,65 +14,177 @@ import { openQuickStart, openReadme } from "./core/files";
 import { openControlCenter } from "./ui/control-center";
 import { setValidationStatus } from "./core/validation-state";
 
+/**
+ * Extension activation entry point.
+ */
 export function activate(context: vscode.ExtensionContext) {
-  // מעבירים את extensionUri ל־provider כדי שיוכל לטעון אייקונים מה־media
   const provider = new DocsAsSystemMiniProvider(context.extensionUri);
 
   const treeView = vscode.window.createTreeView("docsAsSystemMiniView", {
     treeDataProvider: provider
   });
 
-  context.subscriptions.push(
-    provider,
-    treeView,
+  context.subscriptions.push(provider, treeView);
 
+  // --------------------------------------------------------------------------
+  // Commands
+  // --------------------------------------------------------------------------
+
+  context.subscriptions.push(
     vscode.commands.registerCommand(
       "docsAsSystemMini.openControlCenter",
       () => openControlCenter(context)
-    ),
+    )
+  );
 
-    vscode.commands.registerCommand("docsAsSystemMini.initProject", () =>
-      initDocsAsSystemMini()
-    ),
+  /**
+   * Initialize project:
+   * 1. Always validate before downloading files.
+   * 2. If project is valid → skip initialization.
+   * 3. If project is not valid → ask user whether to download files.
+   * 4. After download → validate again and update UI state.
+   */
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "docsAsSystemMini.initProject",
+      async () => {
+        // Step 1: always validate current project state
+        const beforeOk = await validateDocsAsSystemMiniProject();
 
+        setValidationStatus(beforeOk);
+        provider.setValidationStatus(beforeOk);
+
+        if (beforeOk) {
+          vscode.window.showInformationMessage(
+            "Docs-as-System mini: Project already initialized."
+          );
+          return;
+        }
+
+        // Step 2: validation failed → ask user whether to download files
+        const answer = await vscode.window.showWarningMessage(
+          "Some required Docs-as-System mini files are missing.\nDownload full template into this workspace?",
+          "Yes",
+          "No"
+        );
+
+        if (answer !== "Yes") {
+          return;
+        }
+
+        // Step 3: perform initialization (download all files)
+        const didInit = await initDocsAsSystemMini();
+
+        if (!didInit) {
+          // Initialization cancelled or errored → re-run validation anyway
+          const recheck = await validateDocsAsSystemMiniProject();
+          setValidationStatus(recheck);
+          provider.setValidationStatus(recheck);
+          return;
+        }
+
+        // Step 4: ensure disk writes are complete
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Step 5: validate again after initialization
+        const afterOk = await validateDocsAsSystemMiniProject();
+
+        setValidationStatus(afterOk);
+        provider.setValidationStatus(afterOk);
+
+        if (afterOk) {
+          vscode.window.showInformationMessage(
+            "Initialization completed and validation passed."
+          );
+        } else {
+          vscode.window.showWarningMessage(
+            "Initialization completed, but validation failed. See output."
+          );
+        }
+      }
+    )
+  );
+
+  /**
+   * Manual validation command.
+   */
+  context.subscriptions.push(
     vscode.commands.registerCommand(
       "docsAsSystemMini.validateProject",
       async () => {
         const ok = await validateDocsAsSystemMiniProject();
 
-        // עדכון סטייט גלובלי + עדכון ה־TreeView
         setValidationStatus(ok);
         provider.setValidationStatus(ok);
 
         return ok;
       }
-    ),
+    )
+  );
 
-    vscode.commands.registerCommand("docsAsSystemMini.runFullCycle", () =>
-      runFullCycle()
-    ),
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "docsAsSystemMini.runFullCycle",
+      () => runFullCycle()
+    )
+  );
 
-    vscode.commands.registerCommand("docsAsSystemMini.startHumanEdit", () =>
-      startHumanEdit()
-    ),
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "docsAsSystemMini.startHumanEdit",
+      () => startHumanEdit()
+    )
+  );
 
-    vscode.commands.registerCommand("docsAsSystemMini.analyzeHumanChanges", () =>
-      analyzeHumanChanges()
-    ),
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "docsAsSystemMini.analyzeHumanChanges",
+      () => analyzeHumanChanges()
+    )
+  );
 
+  context.subscriptions.push(
     vscode.commands.registerCommand(
       "docsAsSystemMini.validateDocsWithAgent",
       () => validateDocsWithAgent()
-    ),
-
-    vscode.commands.registerCommand("docsAsSystemMini.openQuickStart", () =>
-      openQuickStart()
-    ),
-
-    vscode.commands.registerCommand("docsAsSystemMini.openReadme", () =>
-      openReadme()
     )
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "docsAsSystemMini.openQuickStart",
+      () => openQuickStart()
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "docsAsSystemMini.openReadme",
+      () => openReadme()
+    )
+  );
+
+  // --------------------------------------------------------------------------
+  // Automatic validation on extension activation
+  // --------------------------------------------------------------------------
+
+  /**
+   * Always validate when the extension loads.
+   * This ensures both the TreeView and Control Center
+   * start with correct validation status.
+   */
+  validateDocsAsSystemMiniProject()
+    .then(ok => {
+      setValidationStatus(ok);
+      provider.setValidationStatus(ok);
+    })
+    .catch(() => {
+      setValidationStatus(false);
+      provider.setValidationStatus(false);
+    });
 }
 
+/**
+ * Extension deactivation.
+ */
 export function deactivate() {}

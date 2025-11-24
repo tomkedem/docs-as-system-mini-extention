@@ -35,6 +35,8 @@ export class DocsAsSystemMiniItem extends vscode.TreeItem {
       };
     }
 
+    // For regular items we use built-in theme icons by default.
+    // For special items we can override iconPath explicitly.
     if (iconId && !isSectionHeader) {
       this.iconPath = new vscode.ThemeIcon(iconId);
     }
@@ -67,63 +69,6 @@ export class DocsAsSystemMiniProvider
     this.validationSubscription?.dispose();
   }
 
-  private getSuccessIcon():
-    | vscode.Uri
-    | { light: vscode.Uri; dark: vscode.Uri } {
-    return {
-      light: vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "icons",
-        "validate-success-light.svg"
-      ),
-      dark: vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "icons",
-        "validate-success-dark.svg"
-      )
-    };
-  }
-
-  private getFailedIcon():
-    | vscode.Uri
-    | { light: vscode.Uri; dark: vscode.Uri } {
-    return {
-      light: vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "icons",
-        "validate-failed-light.svg"
-      ),
-      dark: vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "icons",
-        "validate-failed-dark.svg"
-      )
-    };
-  }
-
-  private getPendingIcon():
-    | vscode.Uri
-    | { light: vscode.Uri; dark: vscode.Uri } {
-    return {
-      light: vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "icons",
-        "validate-pending-light.svg"
-      ),
-      dark: vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "icons",
-        "validate-pending-dark.svg"
-      )
-    };
-  }
-
   getTreeItem(element: DocsAsSystemMiniItem): vscode.TreeItem {
     return element;
   }
@@ -135,6 +80,7 @@ export class DocsAsSystemMiniProvider
       return element.children;
     }
 
+    // MY WORKSPACE
     const myWorkspace = new DocsAsSystemMiniItem(
       "MY WORKSPACE",
       undefined,
@@ -143,7 +89,7 @@ export class DocsAsSystemMiniProvider
         new DocsAsSystemMiniItem(
           "Control center",
           "docsAsSystemMini.openControlCenter",
-          "Open the visual Docs-as-System mini dashboard",
+          "Open the Docs-as-System mini Control Center",
           [],
           "graph"
         )
@@ -152,6 +98,7 @@ export class DocsAsSystemMiniProvider
       true
     );
 
+    // DAILY WORKFLOW
     const validateLabel =
       this.validationStatus === true
         ? "Validate project"
@@ -169,44 +116,23 @@ export class DocsAsSystemMiniProvider
     const validateItem = new DocsAsSystemMiniItem(
       validateLabel,
       "docsAsSystemMini.validateProject",
-      validateDescription
+      validateDescription,
+      [],
+      undefined
     );
 
-    if (this.validationStatus === true) {
-      validateItem.iconPath = this.getSuccessIcon();
-    } else if (this.validationStatus === false) {
-      validateItem.iconPath = this.getFailedIcon();
-    } else {
-      validateItem.iconPath = this.getPendingIcon();
-    }
+    validateItem.iconPath = this.getValidationIconPath();
 
-    const projectTools = new DocsAsSystemMiniItem(
-      "PROJECT TOOLS",
+    const dailyWorkflow = new DocsAsSystemMiniItem(
+      "DAILY WORKFLOW",
       undefined,
-      "Create and validate a Docs-as-System mini project",
+      "Run the main Docs-as-System mini daily flow",
       [
-        new DocsAsSystemMiniItem(
-          "Initialize project",
-          "docsAsSystemMini.initProject",
-          "Download all Docs-as-System mini files into this workspace",
-          [],
-          "cloud-download"
-        ),
-        validateItem
-      ],
-      undefined,
-      true
-    );
-
-    const aiWorkflow = new DocsAsSystemMiniItem(
-      "AI WORKFLOW",
-      undefined,
-      "Run the full Docs-as-System mini agent cycle",
-      [
+        validateItem,
         new DocsAsSystemMiniItem(
           "Run full cycle",
           "docsAsSystemMini.runFullCycle",
-          "Copy the orchestration prompt and open chat",
+          "Prepare the orchestration prompt and open the chat",
           [],
           "run"
         )
@@ -215,6 +141,7 @@ export class DocsAsSystemMiniProvider
       true
     );
 
+    // HYBRID HUMAN EDIT
     const hybridMode = new DocsAsSystemMiniItem(
       "HYBRID HUMAN EDIT",
       undefined,
@@ -223,7 +150,7 @@ export class DocsAsSystemMiniProvider
         new DocsAsSystemMiniItem(
           "I'm editing manually now",
           "docsAsSystemMini.startHumanEdit",
-          "Tell the agent that you are doing manual edits",
+          "Tell the agent that you are doing manual edits and pause the cycle",
           [],
           "edit"
         ),
@@ -239,11 +166,19 @@ export class DocsAsSystemMiniProvider
       true
     );
 
-    const docsHelp = new DocsAsSystemMiniItem(
-      "DOCS AND HELP",
+    // DOCS AND SETUP
+    const docsAndSetup = new DocsAsSystemMiniItem(
+      "DOCS AND SETUP",
       undefined,
-      "Read the Docs-as-System mini docs inside this project",
+      "Initialize the project and open the docs",
       [
+        new DocsAsSystemMiniItem(
+          "Initialize project",
+          "docsAsSystemMini.initProject",
+          "Download all Docs-as-System mini files into this workspace",
+          [],
+          "cloud-download"
+        ),
         new DocsAsSystemMiniItem(
           "Open Quick Start Guide",
           "docsAsSystemMini.openQuickStart",
@@ -263,7 +198,7 @@ export class DocsAsSystemMiniProvider
       true
     );
 
-    return [myWorkspace, projectTools, aiWorkflow, hybridMode, docsHelp];
+    return [myWorkspace, dailyWorkflow, hybridMode, docsAndSetup];
   }
 
   refresh(): void {
@@ -273,5 +208,39 @@ export class DocsAsSystemMiniProvider
   setValidationStatus(ok: boolean): void {
     this.validationStatus = ok;
     this.refresh();
+  }
+
+  /**
+   * Choose the correct SVG icon for the "Validate project" item
+   * based on current validation status (pending / success / failed).
+   */
+  private getValidationIconPath():
+    | vscode.ThemeIcon
+    | { light: vscode.Uri; dark: vscode.Uri } {
+    let lightFile = "validate-pending-light.svg";
+    let darkFile = "validate-pending-dark.svg";
+
+    if (this.validationStatus === true) {
+      lightFile = "validate-success-light.svg";
+      darkFile = "validate-success-dark.svg";
+    } else if (this.validationStatus === false) {
+      lightFile = "validate-failed-light.svg";
+      darkFile = "validate-failed-dark.svg";
+    }
+
+    return {
+      light: vscode.Uri.joinPath(
+        this.extensionUri,
+        "media",
+        "icons",
+        lightFile
+      ),
+      dark: vscode.Uri.joinPath(
+        this.extensionUri,
+        "media",
+        "icons",
+        darkFile
+      )
+    };
   }
 }

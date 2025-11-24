@@ -37,7 +37,6 @@ export function openControlCenter(context: vscode.ExtensionContext) {
     vscode.Uri.joinPath(context.extensionUri, "media", "controlCenter.js")
   );
 
-  // אייקונים למצב ולידציה
   const validatePendingIconUri = panel.webview.asWebviewUri(
     vscode.Uri.joinPath(
       context.extensionUri,
@@ -76,7 +75,7 @@ export function openControlCenter(context: vscode.ExtensionContext) {
     }
   );
 
-  // מאזין לשינויים בסטטוס הוולידציה ומדווח ל־webview
+  // When validation status changes globally, notify the webview
   const subscription = onValidationStatusChange(status => {
     if (status === undefined) {
       return;
@@ -95,7 +94,7 @@ export function openControlCenter(context: vscode.ExtensionContext) {
         return;
       }
 
-      // ה־webview מודיע שהוא עלה ורוצה סטטוס נוכחי
+      // Webview asks for initial status
       if (message.type === "ready") {
         const status = getValidationStatus();
         if (status !== undefined) {
@@ -111,15 +110,17 @@ export function openControlCenter(context: vscode.ExtensionContext) {
       if (message.type === "click") {
         const id = String(message.buttonId ?? "");
         switch (id) {
-          case "init-project":
-            await initDocsAsSystemMini();
+          case "init-project": {
+            // We reuse the main command so behavior stays consistent
+            await vscode.commands.executeCommand(
+              "docsAsSystemMini.initProject"
+            );
             break;
+          }
           case "validate-project": {
-            // מריץ את ה command שדואג גם לעדכן state
             const ok = await vscode.commands.executeCommand<boolean>(
               "docsAsSystemMini.validateProject"
             );
-            // אם מישהו קרא ל־command בלי לעדכן state, נתקן פה
             if (typeof ok === "boolean") {
               panel.webview.postMessage({
                 type: "validationResult",
