@@ -13,7 +13,7 @@ export interface TemplateFile {
 
 // Template files to download into the workspace
 export const TEMPLATE_FILES: TemplateFile[] = [
-  // project docs
+  // project docs - editable project documents
   {
     src: "docs/project/BUSINESS_REQUIREMENTS.mini.md",
     dest: "docs/project/BUSINESS_REQUIREMENTS.mini.md"
@@ -29,6 +29,24 @@ export const TEMPLATE_FILES: TemplateFile[] = [
   {
     src: "docs/project/IMPLEMENTATION_PLAN.mini.md",
     dest: "docs/project/IMPLEMENTATION_PLAN.mini.md"
+  },
+
+  // project templates - read only reference templates for validation
+  {
+    src: "templates/project/BUSINESS_REQUIREMENTS_TEMPLATE.mini.md",
+    dest: "templates/project/BUSINESS_REQUIREMENTS_TEMPLATE.mini.md"
+  },
+  {
+    src: "templates/project/PROJECT_SPEC_TEMPLATE.mini.md",
+    dest: "templates/project/PROJECT_SPEC_TEMPLATE.mini.md"
+  },
+  {
+    src: "templates/project/ARCHITECTURE_BLUEPRINT_TEMPLATE.mini.md",
+    dest: "templates/project/ARCHITECTURE_BLUEPRINT_TEMPLATE.mini.md"
+  },
+  {
+    src: "templates/project/IMPLEMENTATION_PLAN_TEMPLATE.mini.md",
+    dest: "templates/project/IMPLEMENTATION_PLAN_TEMPLATE.mini.md"
   },
 
   // prompts
@@ -68,7 +86,11 @@ export const TEMPLATE_FILES: TemplateFile[] = [
     src: "docs/prompts/PROMPTS_LIBRARY/prompt_update_log.mini.md",
     dest: "docs/prompts/PROMPTS_LIBRARY/prompt_update_log.mini.md"
   },
-
+  // core docs validation prompt
+  {
+    src: "docs/prompts/PROMPTS_LIBRARY/prompt_validate_core_docs.mini.md",
+    dest: "docs/prompts/PROMPTS_LIBRARY/prompt_validate_core_docs.mini.md"
+  },
   // human edit mode prompts
   {
     src: "docs/prompts/HUMAN_EDIT_MODE/prompt_analyze_human_changes.mini.md",
@@ -99,24 +121,6 @@ export const TEMPLATE_FILES: TemplateFile[] = [
     dest: "docs/logs/IMPLEMENTATION_LOG.mini.md"
   },
 
-  // automation
-  {
-    src: "docs/automation/CREATE_BRANCH.sh",
-    dest: "docs/automation/CREATE_BRANCH.sh"
-  },
-  {
-    src: "docs/automation/OPEN_PULL_REQUEST.sh",
-    dest: "docs/automation/OPEN_PULL_REQUEST.sh"
-  },
-  {
-    src: "docs/automation/PUSH_BRANCH.sh",
-    dest: "docs/automation/PUSH_BRANCH.sh"
-  },
-  {
-    src: "docs/automation/STAGE_AND_COMMIT.sh",
-    dest: "docs/automation/STAGE_AND_COMMIT.sh"
-  },
-
   // templates
   {
     src: "templates/log/IMPLEMENTATION_LOG_TEMPLATE.mini.md",
@@ -130,15 +134,28 @@ export const TEMPLATE_FILES: TemplateFile[] = [
 
 // Files required by validation
 export const REQUIRED_FILES: string[] = [
+  // editable project docs
   "docs/project/BUSINESS_REQUIREMENTS.mini.md",
   "docs/project/PROJECT_SPEC.mini.md",
   "docs/project/ARCHITECTURE_BLUEPRINT.mini.md",
   "docs/project/IMPLEMENTATION_PLAN.mini.md",
+
+  // project templates - used as reference for validation
+  "templates/project/BUSINESS_REQUIREMENTS_TEMPLATE.mini.md",
+  "templates/project/PROJECT_SPEC_TEMPLATE.mini.md",
+  "templates/project/ARCHITECTURE_BLUEPRINT_TEMPLATE.mini.md",
+  "templates/project/IMPLEMENTATION_PLAN_TEMPLATE.mini.md",
+
+  // agent configuration and policies
   "docs/agent/AGENT_CONFIG.mini.yaml",
   "docs/agent/AGENT_OPERATIONAL_POLICY.mini.md",
   "docs/agent/HUMAN_OPERATIONAL_POLICY.mini.md",
+
+  // core prompts and logs
   "docs/prompts/PROMPTS_LIBRARY/prompt_main_orchestration.mini.md",
   "docs/logs/IMPLEMENTATION_LOG.mini.md",
+
+  // root docs
   "QUICK_START_GUIDE.md",
   "README.md"
 ];

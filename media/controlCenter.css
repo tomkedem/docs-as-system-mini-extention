@@ -329,6 +329,36 @@ body {
   gap: 8px;
 }
 
+.docs-buttons-row .btn {
+  width: calc(50% - 4px);
+}
+
+@media (max-width: 520px) {
+  .docs-buttons-row .btn {
+    width: 100%;
+  }
+}
+
+/* Wrapper for placing two buttons in one row */
+.flow-buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Two buttons per row on wide screens */
+.flow-buttons-row .btn {
+  width: calc(50% - 4px);
+}
+
+/* On small screens each button gets full width */
+@media (max-width: 520px) {
+  .flow-buttons-row .btn {
+    width: 100%;
+  }
+}
+
+
 /* Activity */
 
 .activity {

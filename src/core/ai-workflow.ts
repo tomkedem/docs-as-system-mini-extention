@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 import { getWorkspaceRoot } from "./files";
 
 /**
@@ -14,10 +16,22 @@ export async function runFullCycle(): Promise<void> {
   const promptLines = [
     "Run the full Docs-as-System mini lifecycle using the official orchestration prompt.",
     "Load and execute the file:",
+    "",
     "docs/prompts/PROMPTS_LIBRARY/prompt_main_orchestration.mini.md",
     "",
-    "Do not skip any steps.",
-    "Do not call other prompts manually in the middle of the cycle."
+    "Behavior:",
+    "- Do not skip steps.",
+    "- Follow the orchestration prompt exactly as written.",
+    "- Use only the project files in this workspace.",
+    "- Do not invent missing documents.",
+    "",
+    "Your role:",
+    "- Explain each major step you take.",
+    "- Ask for human approval when the prompt requires it.",
+    "- When preparing code changes, always show a clear diff or summary.",
+    "- When preparing a commit, follow the official scripts in docs/automation.",
+    "",
+    "If you detect missing or invalid core documents, stop the cycle and ask the human to fix them before continuing."
   ];
 
   const prompt = promptLines.join("\n");
@@ -26,12 +40,13 @@ export async function runFullCycle(): Promise<void> {
   await vscode.commands.executeCommand("workbench.action.chat.open");
 
   vscode.window.showInformationMessage(
-    "Docs-as-System mini: Full cycle prompt copied to clipboard. Paste it into your AI chat window."
+    "Docs-as-System mini: Main orchestration prompt copied to clipboard. Paste it into your AI chat and run it from there."
   );
 }
 
 /**
- * Start Human Edit Mode: tell the agent that the human is performing manual edits.
+ * Start Human Edit Mode.
+ * Tells the agent to stop the current cycle and wait for manual edits.
  */
 export async function startHumanEdit(): Promise<void> {
   const workspaceRoot = getWorkspaceRoot();
@@ -56,12 +71,12 @@ export async function startHumanEdit(): Promise<void> {
   await vscode.commands.executeCommand("workbench.action.chat.open");
 
   vscode.window.showInformationMessage(
-    "Docs-as-System mini: Human Edit Mode prompt copied to clipboard. Paste it into your AI chat when you start manual edits."
+    "Docs-as-System mini: Human Edit Mode prompt copied to clipboard. Paste it into your AI chat."
   );
 }
 
 /**
- * Ask the agent to analyze manual changes done by the human.
+ * Ask the agent to analyze human changes after a Human Edit Mode session.
  */
 export async function analyzeHumanChanges(): Promise<void> {
   const workspaceRoot = getWorkspaceRoot();
@@ -82,6 +97,7 @@ export async function analyzeHumanChanges(): Promise<void> {
     "- what changed",
     "- how it aligns with BUSINESS_REQUIREMENTS, PROJECT_SPEC, ARCHITECTURE_BLUEPRINT, IMPLEMENTATION_PLAN",
     "- potential risks or inconsistencies",
+    "",
     "Then wait for further human instructions."
   ];
 
@@ -91,44 +107,79 @@ export async function analyzeHumanChanges(): Promise<void> {
   await vscode.commands.executeCommand("workbench.action.chat.open");
 
   vscode.window.showInformationMessage(
-    "Docs-as-System mini: Analyze Human Changes prompt copied to clipboard. Paste it into your AI chat after you finish manual edits."
+    "Docs-as-System mini: Analyze Human Changes prompt copied to clipboard. Paste it into your AI chat."
   );
 }
 
 /**
- * Ask the agent to perform deeper validation of documentation,
- * beyond simple file existence checks.
+ * Ask the agent to validate the core project documents.
+ * This copies the validation prompt (without header/footer) to the clipboard
+ * and opens the chat, so the user does not need to copy anything manually.
  */
+
 export async function validateDocsWithAgent(): Promise<void> {
   const workspaceRoot = getWorkspaceRoot();
   if (!workspaceRoot) {
     return;
   }
 
-  const promptLines = [
-    "Validate that the core Docs-as-System mini documents are complete, consistent, and ready for the next development cycle.",
-    "",
-    "Focus on:",
-    "- docs/project/BUSINESS_REQUIREMENTS.mini.md",
-    "- docs/project/PROJECT_SPEC.mini.md",
-    "- docs/project/ARCHITECTURE_BLUEPRINT.mini.md",
-    "- docs/project/IMPLEMENTATION_PLAN.mini.md",
-    "",
-    "Check for:",
-    "- missing sections in the templates",
-    "- contradictions between documents",
-    "- ambiguous requirements or unclear responsibilities",
-    "",
-    "Do NOT change any files yourself.",
-    "Return a clear checklist of issues for the human to fix."
-  ];
+  const promptPath = path.join(
+    workspaceRoot,
+    "docs",
+    "prompts",
+    "PROMPTS_LIBRARY",
+    "prompt_validate_core_docs.mini.md"
+  );
 
-  const prompt = promptLines.join("\n");
+  if (!fs.existsSync(promptPath)) {
+    vscode.window.showErrorMessage(
+      "Docs-as-System mini: Could not find docs/prompts/PROMPTS_LIBRARY/prompt_validate_core_docs.mini.md. Run Initialize project to restore templates."
+    );
+    return;
+  }
 
-  await vscode.env.clipboard.writeText(prompt);
+  let content: string;
+  try {
+    const buffer = fs.readFileSync(promptPath);
+    content = buffer.toString("utf8");
+  } catch {
+    vscode.window.showErrorMessage(
+      "Docs-as-System mini: Failed to read prompt_validate_core_docs.mini.md."
+    );
+    return;
+  }
+
+  const startMarker = "<!-- PROMPT_START -->";
+  const endMarker = "<!-- PROMPT_END -->";
+
+  const startIndex = content.indexOf(startMarker);
+  const endIndex = content.indexOf(endMarker);
+
+  let promptBody = "";
+
+  if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+    const between = content.substring(
+      startIndex + startMarker.length,
+      endIndex
+    );
+    promptBody = between.trim();
+  } else {
+    // Fallback: if markers are missing, use full content
+    promptBody = content.trim();
+  }
+
+  if (!promptBody) {
+    vscode.window.showErrorMessage(
+      "Docs-as-System mini: Validation prompt is empty after processing. Check prompt_validate_core_docs.mini.md."
+    );
+    return;
+  }
+
+  await vscode.env.clipboard.writeText(promptBody);
   await vscode.commands.executeCommand("workbench.action.chat.open");
 
   vscode.window.showInformationMessage(
-    "Docs-as-System mini: Agent-based docs validation prompt copied to clipboard. Paste it into your AI chat."
+    "Docs-as-System mini: Core docs validation prompt copied to clipboard. Paste it into your AI chat and run it from there."
   );
 }
+
