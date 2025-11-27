@@ -3,26 +3,6 @@
 (function () {
   const vscode = acquireVsCodeApi();
 
-  function handleButtonClick(event) {
-    const btn = event.currentTarget;
-    const buttonId = btn.getAttribute("data-button-id");
-    if (!buttonId) {
-      return;
-    }
-
-    vscode.postMessage({
-      type: "click",
-      buttonId
-    });
-  }
-
-  function bindButtons() {
-    const buttons = document.querySelectorAll("[data-button-id]");
-    buttons.forEach(btn => {
-      btn.addEventListener("click", handleButtonClick);
-    });
-  }
-
   function setIconState(state) {
     // state: "pending" | "success" | "failed"
     const icons = document.querySelectorAll(
@@ -35,6 +15,7 @@
       const failed = icon.dataset.iconFailed;
 
       let next = pending;
+
       if (state === "success" && success) {
         next = success;
       } else if (state === "failed" && failed) {
@@ -53,13 +34,17 @@
       return;
     }
 
-    if (ok) {
+    if (ok === true) {
       textEl.textContent = "Project structure looks valid.";
       setIconState("success");
-    } else {
+    } else if (ok === false) {
       textEl.textContent =
         "Project structure has issues. Please fix before running full cycles.";
       setIconState("failed");
+    } else {
+      textEl.textContent =
+        "Project structure has not been validated yet.";
+      setIconState("pending");
     }
   }
 
@@ -110,7 +95,32 @@
     }
 
     textEl.textContent = text;
-    textEl.className = `core-docs-status core-docs-status-${statusClass}`;
+    textEl.className =
+      "core-docs-status core-docs-status-" + statusClass;
+  }
+
+  function handleButtonClick(event) {
+    const btn = event.currentTarget;
+    if (!btn) {
+      return;
+    }
+
+    const buttonId = btn.getAttribute("data-button-id");
+    if (!buttonId) {
+      return;
+    }
+
+    vscode.postMessage({
+      type: "click",
+      buttonId
+    });
+  }
+
+  function bindButtons() {
+    const buttons = document.querySelectorAll("[data-button-id]");
+    buttons.forEach(btn => {
+      btn.addEventListener("click", handleButtonClick);
+    });
   }
 
   window.addEventListener("message", event => {
@@ -119,8 +129,11 @@
       return;
     }
 
-    if (message.type === "validationResult" && message.target === "project") {
-      updateProjectStatus(Boolean(message.ok));
+    if (
+      message.type === "validationResult" &&
+      message.target === "project"
+    ) {
+      updateProjectStatus(message.ok);
       return;
     }
 

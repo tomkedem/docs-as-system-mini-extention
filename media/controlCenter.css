@@ -3,58 +3,48 @@
 }
 
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: var(--vscode-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
 }
+
+/* בסיס */
 
 body {
   margin: 0;
   padding: 0;
-  background: radial-gradient(circle at top, #1e90ff 0%, #111827 45%, #020617 100%);
-  color: #f9fafb;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .container {
   width: 100%;
   max-width: 840px;
-  padding: 24px;
+  margin: 0 auto;
+  padding: 16px;
 }
 
+/* כרטיס מרכזי */
+
 .card {
-  background: rgba(15, 23, 42, 0.96);
-  border-radius: 18px;
-  padding: 24px 24px 20px;
+  background-color: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  border-radius: 10px;
+  padding: 16px 16px 12px;
+  border: 1px solid var(--vscode-editorGroup-border, rgba(148, 163, 184, 0.3));
   box-shadow:
-    0 18px 45px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(148, 163, 184, 0.18);
+    0 8px 18px rgba(0, 0, 0, 0.35);
   position: relative;
   overflow: hidden;
 }
 
-.card::before {
-  content: "";
-  position: absolute;
-  inset: -40px;
-  background:
-    radial-gradient(circle at 0 0, rgba(96, 165, 250, 0.12), transparent 55%),
-    radial-gradient(circle at 100% 0, rgba(45, 212, 191, 0.12), transparent 55%);
-  opacity: 0.9;
-  pointer-events: none;
-  z-index: 0;
-}
+/* כותרת עליונה */
 
 .header {
   position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .title-group {
@@ -64,7 +54,7 @@ body {
 }
 
 .title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.01em;
   display: flex;
@@ -76,28 +66,28 @@ body {
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(59, 130, 246, 0.7);
-  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--vscode-editorGroup-border);
+  background-color: var(--vscode-editor-background);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #93c5fd;
+  color: var(--vscode-descriptionForeground);
 }
 
 .subtitle {
   font-size: 13px;
-  color: #9ca3af;
+  color: var(--vscode-descriptionForeground);
 }
 
+/* סטטוס עליון */
+
 .status-card {
-  position: relative;
-  z-index: 1;
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.92);
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: var(--vscode-editor-background);
   box-shadow:
-    0 10px 20px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(55, 65, 81, 0.8);
+    0 4px 10px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--vscode-editorGroup-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -120,53 +110,79 @@ body {
   width: 9px;
   height: 9px;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%, #bbf7d0, #22c55e);
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+  background-color: var(--vscode-testing-iconPassed, #22c55e);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
 }
 
 .status-label {
   font-size: 11px;
-  color: #6ee7b7;
+  color: var(--vscode-descriptionForeground);
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 .status-note {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--vscode-descriptionForeground);
 }
 
 .status-hint {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--vscode-descriptionForeground);
+  opacity: 0.8;
 }
 
+/* טקסט סטטוס של core docs (מתעדכן מ JS) */
+
+.core-docs-status {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.core-docs-status-unknown {
+  opacity: 0.8;
+}
+
+.core-docs-status-error {
+  color: var(--vscode-errorForeground);
+}
+
+.core-docs-status-warning {
+  color: var(--vscode-editorWarning-foreground, #fbbf24);
+}
+
+.core-docs-status-ok {
+  color: var(--vscode-testing-iconPassed, #22c55e);
+}
+
+/* כותרת משנה עבור “Flow” וכו */
+
 .section-title {
-  position: relative;
-  z-index: 1;
-  margin-top: 12px;
+  margin-top: 10px;
   margin-bottom: 6px;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: #6b7280;
+  color: var(--vscode-descriptionForeground);
 }
+
+/* רשת של שלבי זרימה / כפתורים */
 
 .flow-grid {
-  position: relative;
-  z-index: 1;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
+/* כרטיס של שלב ב flow */
+
 .flow-step {
-  background: rgba(15, 23, 42, 0.94);
-  border-radius: 14px;
-  padding: 12px 12px 10px;
+  background-color: var(--vscode-editor-background);
+  border-radius: 8px;
+  padding: 10px 10px 8px;
   box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(55, 65, 81, 0.9);
+    0 6px 12px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--vscode-editorGroup-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -194,9 +210,9 @@ body {
   justify-content: center;
   font-size: 11px;
   font-weight: 600;
-  color: #e5e7eb;
-  background: radial-gradient(circle at 30% 30%, #1d4ed8, #020617);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.9);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.45);
   flex-shrink: 0;
 }
 
@@ -209,41 +225,40 @@ body {
   font-size: 10px;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.8);
-  color: #9ca3af;
+  border: 1px solid var(--vscode-editorGroup-border);
+  color: var(--vscode-descriptionForeground);
 }
 
 .flow-desc {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--vscode-descriptionForeground);
 }
 
-/* Buttons */
+/* כפתורים */
 
 .btn {
   position: relative;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 12px;
+  border: 1px solid var(--vscode-button-border, var(--vscode-editorGroup-border));
+  border-radius: 8px;
+  padding: 8px 10px;
   text-align: left;
   cursor: pointer;
-  background: linear-gradient(135deg, #1f2937, #020617);
-  color: #e5e7eb;
+  background-color: var(--vscode-button-secondaryBackground, var(--vscode-editor-background));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   width: 100%;
   box-shadow:
-    0 10px 18px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(148, 163, 184, 0.28);
+    0 6px 12px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   transform: translateY(0);
   transition:
-    transform 120ms ease,
-    box-shadow 120ms ease,
-    background 120ms ease,
-    border-color 120ms ease;
+    transform 100ms ease,
+    box-shadow 100ms ease,
+    border-color 100ms ease,
+    background-color 100ms ease;
 }
 
 .btn::before {
@@ -251,17 +266,16 @@ body {
   position: absolute;
   inset: 0;
   opacity: 0;
-  background: radial-gradient(circle at top left, rgba(96, 165, 250, 0.4), transparent 60%);
-  transition: opacity 140ms ease;
+  background-color: rgba(255, 255, 255, 0.04);
+  transition: opacity 120ms ease;
   pointer-events: none;
 }
 
 .btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow:
-    0 14px 26px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(191, 219, 254, 0.6);
-  background: linear-gradient(135deg, #111827, #020617);
+    0 8px 16px rgba(0, 0, 0, 0.5);
+  border-color: var(--vscode-focusBorder, var(--vscode-editorGroup-border));
 }
 
 .btn:hover::before {
@@ -271,9 +285,17 @@ body {
 .btn:active {
   transform: translateY(0);
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(96, 165, 250, 0.8);
+    0 4px 8px rgba(0, 0, 0, 0.5);
 }
+
+/* מצב “primary” לכפתורים המרכזיים, אם תרצה להשתמש */
+
+.btn-primary {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+/* כיתוב בכפתור */
 
 .btn-label-main {
   display: inline-flex;
@@ -287,11 +309,11 @@ body {
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  color: #9ca3af;
+  border: 1px solid var(--vscode-editorGroup-border);
+  color: var(--vscode-descriptionForeground);
 }
 
-/* Status icon inside validate button */
+/* אייקון סטטוס בתוך כפתור ה validate */
 
 .btn-status-icon {
   width: 16px;
@@ -301,27 +323,21 @@ body {
   flex-shrink: 0;
 }
 
-/* Validation button states */
+/* מצבי כפתור validate לפי סטטוס */
 
 .btn-pending {
-  box-shadow:
-    0 10px 18px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(148, 163, 184, 0.5);
+  border-color: var(--vscode-editorGroup-border);
 }
 
 .btn-success {
-  box-shadow:
-    0 10px 18px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(34, 197, 94, 0.8);
+  border-color: var(--vscode-testing-iconPassed, #22c55e);
 }
 
 .btn-failed {
-  box-shadow:
-    0 10px 18px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(248, 113, 113, 0.9);
+  border-color: var(--vscode-errorForeground);
 }
 
-/* Docs buttons row */
+/* שורה של כפתורי docs */
 
 .docs-buttons-row {
   display: flex;
@@ -333,43 +349,27 @@ body {
   width: calc(50% - 4px);
 }
 
-@media (max-width: 520px) {
-  .docs-buttons-row .btn {
-    width: 100%;
-  }
-}
+/* עטיפה לשורות של כפתורים בתוך Flow */
 
-/* Wrapper for placing two buttons in one row */
 .flow-buttons-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-/* Two buttons per row on wide screens */
 .flow-buttons-row .btn {
   width: calc(50% - 4px);
 }
 
-/* On small screens each button gets full width */
-@media (max-width: 520px) {
-  .flow-buttons-row .btn {
-    width: 100%;
-  }
-}
-
-
-/* Activity */
+/* Activity למטה */
 
 .activity {
-  position: relative;
-  z-index: 1;
-  margin-top: 18px;
+  margin-top: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 11px;
-  color: #6b7280;
+  color: var(--vscode-descriptionForeground);
 }
 
 .activity-left {
@@ -380,7 +380,7 @@ body {
 
 .activity-title {
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--vscode-descriptionForeground);
 }
 
 .activity-note {
@@ -390,18 +390,20 @@ body {
 .badge {
   padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
+  border: 1px solid var(--vscode-editorGroup-border);
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
 }
 
-/* Responsive */
+/* רספונסיביות */
 
 @media (max-width: 560px) {
   .card {
-    padding: 18px 16px 16px;
+    padding: 14px 12px 12px;
   }
 
   .title {
-    font-size: 17px;
+    font-size: 16px;
   }
 
   .subtitle {
@@ -410,6 +412,11 @@ body {
 
   .flow-grid {
     grid-template-columns: 1fr;
+  }
+
+  .docs-buttons-row .btn,
+  .flow-buttons-row .btn {
+    width: 100%;
   }
 
   .activity-note {
