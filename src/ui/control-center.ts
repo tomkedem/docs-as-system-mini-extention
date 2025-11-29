@@ -12,7 +12,20 @@ import {
 import {
   getCoreDocsValidationSnapshot
 } from "../core/validation/state";
-import { DocumentReadinessLevel } from "../core/validation/types";
+import {
+  CoreDocumentsValidationSnapshot,
+  DocumentValidationResult as CoreDocumentValidationResult,
+  ValidationIssue as CoreValidationIssue,
+  ValidationSeverity as CoreValidationSeverity,
+  CoreDocumentKind,
+  DocumentReadinessLevel
+} from "../core/validation/types";
+import {
+  ValidationSnapshot as UiValidationSnapshot,
+  DocumentValidationResult as UiDocumentValidationResult,
+  DocumentIssue as UiDocumentIssue,
+  ValidationSeverity as UiValidationSeverity
+} from "../core/validation/model";
 
 export function openControlCenter(context: vscode.ExtensionContext) {
   const panel = vscode.window.createWebviewPanel(
@@ -22,7 +35,9 @@ export function openControlCenter(context: vscode.ExtensionContext) {
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")]
+      localResourceRoots: [
+        vscode.Uri.joinPath(context.extensionUri, "media")
+      ]
     }
   );
 
@@ -36,7 +51,8 @@ export function openControlCenter(context: vscode.ExtensionContext) {
       ok
     });
   });
-  context.subscriptions.push({ dispose: () => subscription.dispose() });
+
+  context.subscriptions.push(subscription);
 
   panel.webview.onDidReceiveMessage(
     async message => {
@@ -44,10 +60,10 @@ export function openControlCenter(context: vscode.ExtensionContext) {
         return;
       }
 
-      // Webview is ready and asks for initial state
+      // Webview is ready - send initial state
       if (message.type === "ready") {
         const status = getValidationStatus();
-        if (status !== undefined) {
+        if (typeof status === "boolean") {
           panel.webview.postMessage({
             type: "validationResult",
             target: "project",
@@ -55,19 +71,19 @@ export function openControlCenter(context: vscode.ExtensionContext) {
           });
         }
 
-        // Send latest core documents validation snapshot to the webview
         const coreSnapshot = getCoreDocsValidationSnapshot(context);
         if (coreSnapshot) {
+          const uiSnapshot = mapCoreDocsSnapshotToUi(coreSnapshot);
           panel.webview.postMessage({
             type: "coreDocsValidationUpdated",
-            snapshot: coreSnapshot
+            snapshot: uiSnapshot
           });
         }
 
         return;
       }
 
-      // Button click from controlCenter.js
+      // Button click from the webview
       if (message.type === "click") {
         const id = String(message.buttonId ?? "");
 
@@ -78,6 +94,7 @@ export function openControlCenter(context: vscode.ExtensionContext) {
             );
             break;
           }
+
           case "validate-project": {
             const ok = await vscode.commands.executeCommand<boolean>(
               "docsAsSystemMini.validateProject"
@@ -91,49 +108,33 @@ export function openControlCenter(context: vscode.ExtensionContext) {
             }
             break;
           }
+
           case "validate-core-docs": {
-            const snapshot = await vscode.commands.executeCommand(
-              "docsAsSystemMini.validateCoreDocumentsBasic"
-            );
-            panel.webview.postMessage({
-              type: "coreDocsValidationUpdated",
-              snapshot
-            });
+            // The actual validation is triggered by an external command
+            // Here we only refresh the snapshot that was persisted in state
+            const coreSnapshot = getCoreDocsValidationSnapshot(context);
+            if (coreSnapshot) {
+              const uiSnapshot = mapCoreDocsSnapshotToUi(coreSnapshot);
+              panel.webview.postMessage({
+                type: "coreDocsValidationUpdated",
+                snapshot: uiSnapshot
+              });
+            }
             break;
           }
-          case "run-full-cycle": {
-            await vscode.commands.executeCommand(
-              "docsAsSystemMini.runFullCycle"
-            );
-            break;
-          }
-          case "start-human-edit": {
-            await startHumanEdit();
-            break;
-          }
-          case "analyze-human-changes": {
-            await analyzeHumanChanges();
-            break;
-          }
-          case "open-quick-start": {
-            await openQuickStart();
-            break;
-          }
-          case "open-readme": {
-            await openReadme();
-            break;
-          }
+
           case "validate-docs-with-agent": {
-            const snapshot = getCoreDocsValidationSnapshot(context);
+            const coreSnapshot = getCoreDocsValidationSnapshot(context);
 
             if (
-              !snapshot ||
-              typeof snapshot.overallReadiness !== "number" ||
-              snapshot.overallReadiness <
+              !coreSnapshot ||
+              typeof coreSnapshot.overallReadiness !== "number" ||
+              coreSnapshot.overallReadiness <
                 DocumentReadinessLevel.ContentLooksProjectSpecific
             ) {
               vscode.window.showWarningMessage(
-                "Core documents basic validation has not passed yet. Run \"Validate core documents\" and fix the issues before asking the agent to validate them."
+                'Core documents basic validation has not passed the "Content looks project specific" level yet. ' +
+                  "Please run core docs validation, open the files, and fix the issues before asking the agent to validate them."
               );
               break;
             }
@@ -141,6 +142,34 @@ export function openControlCenter(context: vscode.ExtensionContext) {
             await validateDocsWithAgent();
             break;
           }
+
+          case "run-full-cycle": {
+            await vscode.commands.executeCommand(
+              "docsAsSystemMini.runFullCycle"
+            );
+            break;
+          }
+
+          case "start-human-edit": {
+            await startHumanEdit();
+            break;
+          }
+
+          case "analyze-human-changes": {
+            await analyzeHumanChanges();
+            break;
+          }
+
+          case "open-quick-start": {
+            await openQuickStart();
+            break;
+          }
+
+          case "open-readme": {
+            await openReadme();
+            break;
+          }
+
           default: {
             vscode.window.showWarningMessage(
               `Unknown control center button: ${id}`
@@ -149,9 +178,7 @@ export function openControlCenter(context: vscode.ExtensionContext) {
           }
         }
       }
-    },
-    undefined,
-    context.subscriptions
+    }
   );
 }
 
@@ -159,13 +186,13 @@ function getWebviewContent(
   context: vscode.ExtensionContext,
   panel: vscode.WebviewPanel
 ): string {
-  const cspSource = panel.webview.cspSource;
+  const webview = panel.webview;
+  const cspSource = webview.cspSource;
 
-  const cssUri = panel.webview.asWebviewUri(
+  const cssUri = webview.asWebviewUri(
     vscode.Uri.joinPath(context.extensionUri, "media", "controlCenter.css")
   );
-
-  const jsUri = panel.webview.asWebviewUri(
+  const jsUri = webview.asWebviewUri(
     vscode.Uri.joinPath(context.extensionUri, "media", "controlCenter.js")
   );
 
@@ -221,55 +248,54 @@ function getWebviewContent(
       <!-- Header -->
       <div class="header">
         <div class="title-group">
-
-          <!-- Main title -->
           <div class="title-row">
             <h1 class="title">Docs-as-System mini</h1>
             <span class="title-label">Control Center</span>
           </div>
 
-          <!-- Subtitle -->
           <p class="subtitle">
             One place to initialize the project, validate the core documents, and run AI guided cycles.
           </p>
 
-          <!-- Small helper text -->
           <p class="subtitle secondary">
             Start from Step 1 at the top. Once the core docs are ready, you can let the agent run full cycles safely.
           </p>
         </div>
 
         <!-- Project validation status -->
-        <div class="status-block">
-          <div class="status-label">Project validation</div>
-          <div class="status-row">
-            <span
-              class="status-text"
+        <div class="status-card">
+          <div class="status-main">
+            <div class="status-row">
+              <span class="status-dot"></span>
+              <span class="status-label">Project validation</span>
+            </div>
+            <div
+              class="status-note"
               data-status-text="project"
             >
               Project structure has not been validated yet.
-            </span>
-            <img
-              class="status-icon"
-              data-validation-icon="project"
-              data-icon-pending="${validatePendingIconUri}"
-              data-icon-success="${validateSuccessIconUri}"
-              data-icon-failed="${validateFailedIconUri}"
-              src="${validatePendingIconUri}"
-              alt="Validation status"
-            />
+            </div>
           </div>
+          <img
+            class="status-icon"
+            data-validation-icon="project"
+            data-icon-pending="${validatePendingIconUri}"
+            data-icon-success="${validateSuccessIconUri}"
+            data-icon-failed="${validateFailedIconUri}"
+            src="${validatePendingIconUri}"
+            alt="Validation status"
+          />
         </div>
       </div>
 
-      <!-- STEP 1 -->
+      <!-- Section: Step 1 -->
       <div class="section-title">
         Step 1: Validate project and core documents
       </div>
 
       <div class="flow-grid">
 
-        <!-- Initialize project (no numbering) -->
+        <!-- Initialize project -->
         <div class="flow-step">
           <div class="flow-header">
             <div class="flow-left">
@@ -279,31 +305,48 @@ function getWebviewContent(
           <div class="flow-desc">
             Download Docs-as-System mini folders and core templates, or repair a broken setup.
           </div>
-          <button class="btn" data-button-id="init-project">
-            <span class="btn-label-main">
-              Initialize project
-            </span>
-            <span class="btn-key">First-time setup</span>
-          </button>
+          <div class="docs-buttons-row">
+            <button class="btn" data-button-id="init-project">
+              <span class="btn-label-main">
+                Initialize or repair project
+              </span>
+              <span class="btn-key">Init</span>
+            </button>
+            <button class="btn" data-button-id="open-quick-start">
+              <span class="btn-label-main">
+                Open Quick Start guide
+              </span>
+              <span class="btn-key">Guide</span>
+            </button>
+            <button class="btn" data-button-id="open-readme">
+              <span class="btn-label-main">
+                Open project README
+              </span>
+              <span class="btn-key">Docs</span>
+            </button>
+          </div>
         </div>
 
-        <!-- 1. validate project structure -->
+        <!-- Validate project structure -->
         <div class="flow-step">
           <div class="flow-header">
             <div class="flow-left">
               <div class="flow-step-index">1</div>
-              <div class="flow-step-title">Project structure</div>
+              <div class="flow-step-title">Validate project structure</div>
             </div>
           </div>
           <div class="flow-desc">
-            Check that the Docs-as-System mini folders, required files and scripts are in place.
+            Check that all required folders and system files exist and match the expected structure.
           </div>
-          <button class="btn" data-button-id="validate-project">
+          <button class="btn btn-validate" data-button-id="validate-project">
             <span class="btn-label-main">
-              Validate project structure
+              <span>Validate project structure</span>
+            </span>
+            <span class="btn-key-and-icon">
+              <span class="btn-key">Step 1</span>
               <img
-                class="inline-status-icon"
-                data-validation-icon="project"
+                class="btn-status-icon"
+                data-validation-icon="validate"
                 data-icon-pending="${validatePendingIconUri}"
                 data-icon-success="${validateSuccessIconUri}"
                 data-icon-failed="${validateFailedIconUri}"
@@ -311,33 +354,32 @@ function getWebviewContent(
                 alt="Validation status"
               />
             </span>
-            <span class="btn-key">Step 1.1</span>
           </button>
         </div>
 
-        <!-- 2. core docs -->
+        <!-- Core documents validation status + button -->
         <div class="flow-step">
           <div class="flow-header">
             <div class="flow-left">
               <div class="flow-step-index">2</div>
-              <div class="flow-step-title">Core project documents</div>
+              <div class="flow-step-title">Validate core documents</div>
             </div>
           </div>
           <div class="flow-desc">
-            Check that BUSINESS_REQUIREMENTS, PROJECT_SPEC, ARCHITECTURE_BLUEPRINT and IMPLEMENTATION_PLAN exist and are readable.
+            Run a quick validation of the core docs to ensure they exist, follow the template, and contain project specific content.
+          </div>
+          <div class="core-docs-status" data-status-text="core-docs">
+            Core documents status: not validated yet.
           </div>
           <button class="btn" data-button-id="validate-core-docs">
             <span class="btn-label-main">
               Validate core documents
             </span>
-            <span class="btn-key">Step 1.2</span>
+            <span class="btn-key">Step 2</span>
           </button>
-          <div class="core-docs-status" data-status-text="core-docs">
-            Core documents status: not validated yet.
-          </div>
         </div>
 
-        <!-- 3. validate docs with agent -->
+        <!-- Validate docs with agent -->
         <div class="flow-step">
           <div class="flow-header">
             <div class="flow-left">
@@ -350,102 +392,116 @@ function getWebviewContent(
           </div>
           <button class="btn" data-button-id="validate-docs-with-agent">
             <span class="btn-label-main">
-              Run agent validation
+              Ask the agent to validate docs
             </span>
-            <span class="btn-key">Step 1.3</span>
+            <span class="btn-key">Step 3</span>
           </button>
         </div>
-
       </div>
 
-      <!-- STEP 2 -->
+      <!-- Core docs report -->
       <div class="section-title">
-        Step 2: Let the agent work
+        Core documents validation report
+      </div>
+
+      <div class="core-docs-layout">
+        <div class="core-docs-list-panel">
+          <div class="core-docs-list-header">
+            <div class="core-docs-list-title">Documents</div>
+            <div class="core-docs-list-subtitle">
+              Latest validation snapshot. Click a document to see its issues.
+            </div>
+          </div>
+          <div id="core-docs-list" class="core-docs-list">
+            <!-- filled by controlCenter.js -->
+          </div>
+        </div>
+
+        <div class="core-docs-details-panel">
+          <div class="core-docs-details-header">
+            <div
+              id="core-docs-details-title"
+              class="core-docs-details-title"
+            >
+              No document selected
+            </div>
+            <div
+              id="core-docs-details-subtitle"
+              class="core-docs-details-subtitle"
+            >
+              Run core docs validation, then select a document on the left.
+            </div>
+          </div>
+
+          <div
+            id="core-docs-issues"
+            class="core-docs-issues"
+          >
+            <!-- filled by controlCenter.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Step 2 -->
+      <div class="section-title">
+        Step 2: Run AI guided cycles
       </div>
 
       <div class="flow-grid">
-
-        <!-- 4. run full AI guided cycle -->
+        <!-- Run full cycle -->
         <div class="flow-step">
           <div class="flow-header">
             <div class="flow-left">
               <div class="flow-step-index">4</div>
-              <div class="flow-step-title">Run full AI-guided cycle</div>
+              <div class="flow-step-title">Run full AI guided cycle</div>
             </div>
           </div>
           <div class="flow-desc">
-            Use the main orchestration prompt to let the agent read the docs, plan the work, update the code, self-check and prepare a commit and pull request.
+            Let the agent read the docs, select the next task from the Implementation Plan, propose a plan, execute, self check, and prepare a commit and pull request.
           </div>
           <button class="btn" data-button-id="run-full-cycle">
             <span class="btn-label-main">
-              Run full AI-guided cycle
+              Run full cycle with the agent
             </span>
-            <span class="btn-key">Step 2.1</span>
+            <span class="btn-key">Step 4</span>
           </button>
         </div>
-      </div>
 
-      <!-- Hybrid human edit -->
-      <div class="section-title">
-        Hybrid human edit
-      </div>
-
-      <div class="flow-grid">
+        <!-- Human edit mode -->
         <div class="flow-step">
           <div class="flow-header">
             <div class="flow-left">
-              <div class="flow-step-title">Human edit session</div>
+              <div class="flow-step-index">5</div>
+              <div class="flow-step-title">Human edit mode</div>
             </div>
           </div>
           <div class="flow-desc">
-            Use this flow when a human edited the docs or code directly and you want the agent to analyze the changes without taking over.
+            Temporarily switch to human driven editing of the docs, while keeping the agent aware of the changes.
           </div>
           <div class="docs-buttons-row">
             <button class="btn" data-button-id="start-human-edit">
               <span class="btn-label-main">
-                Start human edit session
+                Start Human Edit mode
               </span>
+              <span class="btn-key">Edit</span>
             </button>
             <button class="btn" data-button-id="analyze-human-changes">
               <span class="btn-label-main">
-                Analyze human changes
+                Analyze Human changes
               </span>
+              <span class="btn-key">Review</span>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Docs-as-System mini resources -->
-      <div class="section-title">
-        Docs-as-System mini resources
-      </div>
-
-      <div class="flow-grid">
-        <div class="flow-step">
-          <div class="flow-header">
-            <div class="flow-left">
-              <div class="flow-step-title">Method docs</div>
-            </div>
+      <!-- Activity / helper footer -->
+      <div class="activity">
+        <div class="activity-left">
+          <div class="activity-title">
+            Activity and notifications
           </div>
-          <div class="flow-desc">
-            Open the official method docs that explain the workflow and the meaning of each document.
-          </div>
-          <div class="docs-buttons-row">
-            <button class="btn" data-button-id="open-quick-start">
-              <span class="btn-label-main">Open Quick Start</span>
-            </button>
-            <button class="btn" data-button-id="open-readme">
-              <span class="btn-label-main">Open project README</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="footer">
-        <div class="footer-text">
-          <div>Docs-as-System mini is designed to be used together with your AI agent inside VS Code.</div>
-          <div>
+          <div class="activity-note">
             Commands you run from here will appear in the VS Code notifications and Output panel.
           </div>
         </div>
@@ -459,4 +515,263 @@ function getWebviewContent(
 </body>
 </html>
 `;
+}
+
+/**
+ * Map the core documents validation snapshot (used by the validation engine)
+ * into the UI friendly snapshot that the Control Center renders.
+ */
+function mapCoreDocsSnapshotToUi(
+  snapshot: CoreDocumentsValidationSnapshot
+): UiValidationSnapshot & { overallReadiness: DocumentReadinessLevel } {
+  const documents: UiDocumentValidationResult[] =
+    snapshot.perDocument.map(mapCoreDocResultToUiDocResult);
+
+  const summarySeverity = computeSummarySeverity(documents);
+  const readyForDevelopment = computeReadyForDevelopment(
+    snapshot.overallReadiness
+  );
+
+  const base: UiValidationSnapshot = {
+    summarySeverity,
+    readyForDevelopment,
+    summaryMessage: describeCoreDocsState(
+      documents,
+      snapshot.overallReadiness
+    ),
+    lastValidatedAt: snapshot.lastValidatedAt,
+    documents
+  };
+
+  return {
+    ...base,
+    overallReadiness: snapshot.overallReadiness
+  };
+}
+
+const CORE_DOC_PATHS: Record<CoreDocumentKind, string> = {
+  "business-requirements": "docs/project/BUSINESS_REQUIREMENTS.mini.md",
+  "project-spec": "docs/project/PROJECT_SPEC.mini.md",
+  "architecture-blueprint":
+    "docs/project/ARCHITECTURE_BLUEPRINT.mini.md",
+  "implementation-plan": "docs/project/IMPLEMENTATION_PLAN.mini.md"
+};
+
+const CORE_DOC_DISPLAY_NAMES: Record<CoreDocumentKind, string> = {
+  "business-requirements": "Business Requirements",
+  "project-spec": "Project Spec",
+  "architecture-blueprint": "Architecture Blueprint",
+  "implementation-plan": "Implementation Plan"
+};
+
+function mapCoreDocResultToUiDocResult(
+  doc: CoreDocumentValidationResult
+): UiDocumentValidationResult {
+  const issues = (doc.issues ?? []).map(mapCoreIssueToUiIssue);
+  const severity = computeDocumentSeverity(issues);
+  const path = CORE_DOC_PATHS[doc.kind] ?? doc.kind;
+  const displayName = CORE_DOC_DISPLAY_NAMES[doc.kind] ?? doc.kind;
+  const readinessLabel = describeDocumentReadiness(doc.readiness);
+
+  return {
+    path,
+    displayName,
+    severity,
+    issues,
+    readinessLabel
+  };
+}
+
+function mapCoreIssueToUiIssue(
+  issue: CoreValidationIssue
+): UiDocumentIssue {
+  return {
+    id: issue.ruleId,
+    message: mapIssueMessage(issue),
+    severity: mapCoreSeverityToUiSeverity(issue.severity),
+    sectionPath: buildSectionPath(issue),
+    details: undefined,
+    suggestion: undefined
+  };
+}
+// Maps low level validation keys to human friendly messages
+function mapIssueMessage(issue: CoreValidationIssue): string {
+  const key = issue.messageKey || issue.ruleId;
+
+  switch (key) {
+    case "CORE_DOC_WRONG_TITLE":
+      return "Document title still looks like the default template. Replace it with a project specific title (for example including the project name).";
+
+    case "CORE_DOC_MISSING_SECTION":
+      return "A required section is missing in this document. Make sure all mandatory sections from the template are present.";
+
+    case "CORE_DOC_EMPTY_SECTION":
+      return "One or more required sections are present but empty. Add project specific content to these sections.";
+
+    // You can extend this switch with more keys later, as the validator grows
+
+    default:
+      // Fallback: show the raw key so advanced users still see what rule fired
+      return key || "Validation issue detected in this document.";
+  }
+}
+
+
+
+function buildSectionPath(
+  issue: CoreValidationIssue
+): string | undefined {
+  const loc = issue.location;
+  if (!loc) {
+    return undefined;
+  }
+
+  if (typeof loc.line === "number") {
+    return `${loc.uri}:${loc.line}`;
+  }
+
+  return loc.uri;
+}
+
+function mapCoreSeverityToUiSeverity(
+  severity: CoreValidationSeverity
+): UiValidationSeverity {
+  switch (severity) {
+    case "error":
+      return "BLOCKER";
+    case "warning":
+      return "WARNING";
+    case "info":
+    default:
+      return "OK";
+  }
+}
+
+function computeDocumentSeverity(
+  issues: UiDocumentIssue[]
+): UiValidationSeverity {
+  if (issues.some(i => i.severity === "BLOCKER")) {
+    return "BLOCKER";
+  }
+
+  if (issues.some(i => i.severity === "WARNING")) {
+    return "WARNING";
+  }
+
+  return "OK";
+}
+
+function computeSummarySeverity(
+  documents: UiDocumentValidationResult[]
+): UiValidationSeverity {
+  if (documents.some(d => d.severity === "BLOCKER")) {
+    return "BLOCKER";
+  }
+
+  if (documents.some(d => d.severity === "WARNING")) {
+    return "WARNING";
+  }
+
+  return "OK";
+}
+
+function computeReadyForDevelopment(
+  level: DocumentReadinessLevel
+): boolean {
+  return (
+    level === DocumentReadinessLevel.ContentLooksProjectSpecific ||
+    level === DocumentReadinessLevel.AgentApproved
+  );
+}
+
+/**
+ * Human friendly description for the mixed state of core docs.
+ * Takes into account both the overall readiness level and the per-document mix.
+ */
+function describeCoreDocsState(
+  documents: UiDocumentValidationResult[],
+  overall: DocumentReadinessLevel
+): string {
+  if (!documents.length) {
+    return "Core documents status: not validated yet.";
+  }
+
+  const okCount = documents.filter(d => d.severity === "OK").length;
+  const warnCount = documents.filter(d => d.severity === "WARNING").length;
+  const blockCount = documents.filter(d => d.severity === "BLOCKER").length;
+  const total = documents.length;
+
+  // Classic initial state: files exist but none of the documents are really ready
+  if (
+    overall === DocumentReadinessLevel.FilesExist &&
+    okCount === 0 &&
+    (warnCount > 0 || blockCount > 0 || total > 0)
+  ) {
+    return "Core documents exist, but content is not ready yet. Some files may be empty, missing sections, or still look like the default template.";
+  }
+
+  // All documents are ready and look project specific
+  if (
+    okCount === total &&
+    overall >= DocumentReadinessLevel.ContentLooksProjectSpecific
+  ) {
+    return "All core documents look project specific and ready.";
+  }
+
+  // Mixed state: some documents are fine, others have serious issues
+  if (blockCount > 0 && okCount > 0) {
+    return "Some core documents are ready, but others still require work.";
+  }
+
+  if (blockCount > 0 && okCount === 0) {
+    return "Several core documents have critical issues that must be fixed before you can rely on them.";
+  }
+
+  if (warnCount > 0 && okCount > 0 && blockCount === 0) {
+    return "Most core documents look good, but some still need attention.";
+  }
+
+  if (warnCount > 0 && okCount === 0 && blockCount === 0) {
+    return "Core documents structure looks mostly OK, but several sections still need attention.";
+  }
+
+  // Generic fallback based on overall readiness
+  switch (overall) {
+    case DocumentReadinessLevel.NotChecked:
+      return "Core documents status: not validated yet.";
+    case DocumentReadinessLevel.FilesExist:
+      return "Core documents exist, but content is not ready yet.";
+    case DocumentReadinessLevel.StructureOk:
+      return "Core documents: structure looks OK, but some content still needs work.";
+    case DocumentReadinessLevel.ContentLooksProjectSpecific:
+      return "Core documents: content looks project specific, with some minor issues.";
+    case DocumentReadinessLevel.AgentApproved:
+      return "Core documents: agent approved and ready for full cycles.";
+    default:
+      return "Core documents status: unknown.";
+  }
+}
+
+// Converts DocumentReadinessLevel into a short, human friendly label per document
+function describeDocumentReadiness(
+  level: DocumentReadinessLevel | undefined
+): string {
+  if (typeof level !== "number") {
+    return "Not validated yet";
+  }
+
+  switch (level) {
+    case DocumentReadinessLevel.NotChecked:
+      return "Not validated yet";
+    case DocumentReadinessLevel.FilesExist:
+      return "Template or incomplete content";
+    case DocumentReadinessLevel.StructureOk:
+      return "Structure OK, content needs work";
+    case DocumentReadinessLevel.ContentLooksProjectSpecific:
+      return "Content looks project specific";
+    case DocumentReadinessLevel.AgentApproved:
+      return "Agent approved and ready";
+    default:
+      return "Unknown state";
+  }
 }
