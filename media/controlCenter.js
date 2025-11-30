@@ -47,38 +47,65 @@
   // -----------------------------
 
   function handleProjectValidationResult(message) {
+    // Validate incoming message
     if (!message || message.target !== "project") {
       return;
     }
 
-    const hasOk = typeof message.ok === "boolean";
+    // Normalize validation result to boolean
     const ok = !!message.ok;
 
+    // Elements for the project status area
     const textEl = document.querySelector('[data-status-text="project"]');
-    const iconEl = document.querySelector(
-      '[data-validation-icon="project"]'
-    );
+    const cardIconEl = document.querySelector('[data-validation-icon="project"]');
 
-    if (!textEl || !iconEl) {
+    // Button icon for "Validate project structure" (Step 1)
+    const buttonIconEl = document.querySelector('[data-validation-icon="validate"]');
+
+    // Ensure required DOM elements exist
+    if (!textEl || !cardIconEl) {
       return;
     }
 
+    // Update main project status text and icon
     if (ok) {
       textEl.textContent = "Project structure looks valid.";
-      setValidationIcon(iconEl, "success");
+      setValidationIcon(cardIconEl, "success");
     } else {
       textEl.textContent =
         "Project structure has issues. Open the Output panel for details.";
-      setValidationIcon(iconEl, "failed");
+      setValidationIcon(cardIconEl, "failed");
     }
 
-    // Update Init button status icon (✔ / ✖) if the span exists
-    if (hasOk) {
-      updateInitButtonStatus(ok);
-    } else {
-      updateInitButtonStatus(null);
+    // Update the Step 1 button's status icon
+    if (buttonIconEl) {
+      setValidationIcon(buttonIconEl, ok ? "success" : "failed");
+    }
+
+    // Update Init button status (checkmark or X)
+    updateInitButtonStatus(ok);
+  }
+
+
+
+  function updateValidateProjectButtonStatus(state) {
+    const iconSpan = document.getElementById("validate-project-status-icon");
+    if (!iconSpan) {
+      return;
+    }
+
+    iconSpan.textContent = "";
+    iconSpan.className = "btn-status-icon";
+
+    if (state === true) {
+      iconSpan.textContent = "✔";
+      iconSpan.className = "btn-status-icon btn-status-ok";
+    } else if (state === false) {
+      iconSpan.textContent = "✖";
+      iconSpan.className = "btn-status-icon btn-status-bad";
     }
   }
+
 
   function setValidationIcon(img, state) {
     const pending = img.getAttribute("data-icon-pending");
