@@ -71,7 +71,15 @@ export function openControlCenter(context: vscode.ExtensionContext) {
           });
         }
 
-        const coreSnapshot = getCoreDocsValidationSnapshot(context);
+        // Try to load existing snapshot
+        let coreSnapshot = getCoreDocsValidationSnapshot(context);
+
+        // If no snapshot exists yet, run validation once on first open
+        if (!coreSnapshot) {
+          await vscode.commands.executeCommand("docsAsSystemMini.validateCoreDocs");
+          coreSnapshot = getCoreDocsValidationSnapshot(context);
+        }
+
         if (coreSnapshot) {
           const uiSnapshot = mapCoreDocsSnapshotToUi(coreSnapshot);
           panel.webview.postMessage({
@@ -110,9 +118,11 @@ export function openControlCenter(context: vscode.ExtensionContext) {
           }
 
           case "validate-core-docs": {
-            // The actual validation is triggered by an external command
-            // Here we only refresh the snapshot that was persisted in state
-            const coreSnapshot = getCoreDocsValidationSnapshot(context);
+            // Run basic validation for core documents and persist the snapshot
+            const coreSnapshot = await vscode.commands.executeCommand<
+              CoreDocumentsValidationSnapshot
+            >("docsAsSystemMini.validateCoreDocumentsBasic");
+
             if (coreSnapshot) {
               const uiSnapshot = mapCoreDocsSnapshotToUi(coreSnapshot);
               panel.webview.postMessage({
@@ -122,6 +132,8 @@ export function openControlCenter(context: vscode.ExtensionContext) {
             }
             break;
           }
+
+
 
           case "validate-docs-with-agent": {
             const coreSnapshot = getCoreDocsValidationSnapshot(context);
@@ -597,27 +609,62 @@ function mapCoreIssueToUiIssue(
     suggestion: undefined
   };
 }
-// Maps low level validation keys to human friendly messages
+ // Maps low level validation keys to human friendly messages
 function mapIssueMessage(issue: CoreValidationIssue): string {
   const key = issue.messageKey || issue.ruleId;
 
+  // Try to extract the section title from issue.details, if available
+  let sectionTitle: string | undefined;
+  if (issue.details && typeof issue.details === "object") {
+    const anyDetails = issue.details as Record<string, unknown>;
+    if (
+      typeof anyDetails.sectionTitle === "string" &&
+      anyDetails.sectionTitle.trim().length > 0
+    ) {
+      sectionTitle = anyDetails.sectionTitle.trim();
+    }
+  }
+
   switch (key) {
+    case "CORE_DOC_MISSING_FILE":
+      return "This core document is missing from the project. Create it from the official template before continuing.";
+
+    case "CORE_DOC_EMPTY_FILE":
+      return "This core document exists but is empty. Fill it with project specific content before continuing.";
+
+    case "CORE_DOC_MISSING_TITLE":
+      return "The document is missing a top-level title. Add a '# ...' heading at the top.";
+
     case "CORE_DOC_WRONG_TITLE":
-      return "Document title still looks like the default template. Replace it with a project specific title (for example including the project name).";
+      return "Document title does not follow the expected structure. Use a clear project specific title.";
 
     case "CORE_DOC_MISSING_SECTION":
-      return "A required section is missing in this document. Make sure all mandatory sections from the template are present.";
+      if (sectionTitle) {
+        return `Required section "${sectionTitle}" is missing from this document. Add this section using the heading from the template.`;
+      }
+      return "One or more required sections are missing from this document.";
 
     case "CORE_DOC_EMPTY_SECTION":
-      return "One or more required sections are present but empty. Add project specific content to these sections.";
+      if (sectionTitle) {
+        return `Section "${sectionTitle}" exists but does not have project specific content yet. Fill this section before relying on this document.`;
+      }
+      return "One or more sections exist but do not have project specific content yet.";
 
-    // You can extend this switch with more keys later, as the validator grows
+    case "CORE_DOC_SECTION_STILL_TEMPLATE":
+      if (sectionTitle) {
+        return `Section "${sectionTitle}" still contains template content. Replace the template examples with your project specific content and remove the TEMPLATE_CONTENT marker.`;
+      }
+      return "One or more sections still contain template content. Replace the template examples with your project specific content and remove the TEMPLATE_CONTENT markers.";
+
+    case "CORE_DOC_STILL_TEMPLATE":
+      return "This document still looks very close to the original template. Adapt the content to this specific project before using it for real development.";
 
     default:
       // Fallback: show the raw key so advanced users still see what rule fired
       return key || "Validation issue detected in this document.";
   }
 }
+
 
 
 

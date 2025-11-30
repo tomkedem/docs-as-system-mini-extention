@@ -2,10 +2,10 @@
 
 import * as vscode from "vscode";
 import {
-  CoreDocumentKind,
   CoreDocumentsValidationSnapshot,
-  DocumentReadinessLevel,
-  DocumentValidationResult,
+  DocumentValidationResult as CoreDocumentValidationResult,
+  CoreDocumentKind,
+  DocumentReadinessLevel
 } from "./types";
 
 const SNAPSHOT_KEY = "docsAsSystem.coreDocumentsValidation";
@@ -14,7 +14,7 @@ const CORE_DOCUMENTS: readonly CoreDocumentKind[] = [
   "business-requirements",
   "project-spec",
   "architecture-blueprint",
-  "implementation-plan",
+  "implementation-plan"
 ];
 
 /**
@@ -22,11 +22,11 @@ const CORE_DOCUMENTS: readonly CoreDocumentKind[] = [
  */
 function createEmptyDocumentResult(
   kind: CoreDocumentKind
-): DocumentValidationResult {
+): CoreDocumentValidationResult {
   return {
     kind,
     readiness: DocumentReadinessLevel.NotChecked,
-    issues: [],
+    issues: []
   };
 }
 
@@ -36,10 +36,8 @@ function createEmptyDocumentResult(
 export function createEmptySnapshot(): CoreDocumentsValidationSnapshot {
   return {
     overallReadiness: DocumentReadinessLevel.NotChecked,
-    perDocument: CORE_DOCUMENTS.map((kind) =>
-      createEmptyDocumentResult(kind)
-    ),
-    lastValidatedAt: undefined,
+    perDocument: CORE_DOCUMENTS.map(createEmptyDocumentResult),
+    lastValidatedAt: undefined
   };
 }
 
@@ -54,35 +52,42 @@ function normalizeSnapshot(
     return createEmptySnapshot();
   }
 
-  // Ensure perDocument exists for all core documents
-  const byKind = new Map<CoreDocumentKind, DocumentValidationResult>();
+  const byKind = new Map<CoreDocumentKind, CoreDocumentValidationResult>();
+
   if (Array.isArray(stored.perDocument)) {
     for (const doc of stored.perDocument) {
-      if (doc && doc.kind) {
-        byKind.set(doc.kind, {
-          kind: doc.kind,
-          readiness:
-            doc.readiness ?? DocumentReadinessLevel.NotChecked,
-          issues: Array.isArray(doc.issues) ? doc.issues : [],
-        });
+      if (!doc || !doc.kind) {
+        continue;
       }
+
+      const kind = doc.kind as CoreDocumentKind;
+
+      byKind.set(kind, {
+        kind,
+        readiness:
+          typeof doc.readiness === "number"
+            ? doc.readiness
+            : DocumentReadinessLevel.NotChecked,
+        issues: Array.isArray(doc.issues) ? doc.issues : []
+      });
     }
   }
 
-  const perDocument = CORE_DOCUMENTS.map((kind) => {
+  const perDocument = CORE_DOCUMENTS.map(kind => {
     const existing = byKind.get(kind);
     return existing ?? createEmptyDocumentResult(kind);
   });
 
-  const normalized: CoreDocumentsValidationSnapshot = {
+  const base: CoreDocumentsValidationSnapshot = {
     overallReadiness:
-      stored.overallReadiness ??
-      computeOverallReadiness(perDocument),
+      typeof stored.overallReadiness === "number"
+        ? stored.overallReadiness
+        : computeOverallReadiness(perDocument),
     perDocument,
-    lastValidatedAt: stored.lastValidatedAt,
+    lastValidatedAt: stored.lastValidatedAt
   };
 
-  return withRecomputedOverallReadiness(normalized);
+  return withRecomputedOverallReadiness(base);
 }
 
 /**
@@ -92,9 +97,8 @@ function normalizeSnapshot(
 export function getCoreDocsValidationSnapshot(
   context: vscode.ExtensionContext
 ): CoreDocumentsValidationSnapshot {
-  const stored = context.workspaceState.get<CoreDocumentsValidationSnapshot>(
-    SNAPSHOT_KEY
-  );
+  const stored =
+    context.workspaceState.get<CoreDocumentsValidationSnapshot>(SNAPSHOT_KEY);
 
   return normalizeSnapshot(stored);
 }
@@ -125,7 +129,7 @@ export async function resetCoreDocsValidationSnapshot(
  * Overall readiness is the minimum readiness level of all core documents.
  */
 export function computeOverallReadiness(
-  perDocument: DocumentValidationResult[]
+  perDocument: CoreDocumentValidationResult[]
 ): DocumentReadinessLevel {
   if (!perDocument.length) {
     return DocumentReadinessLevel.NotChecked;
@@ -134,6 +138,10 @@ export function computeOverallReadiness(
   let minLevel = DocumentReadinessLevel.AgentApproved;
 
   for (const doc of perDocument) {
+    if (typeof doc.readiness !== "number") {
+      continue;
+    }
+
     if (doc.readiness < minLevel) {
       minLevel = doc.readiness;
     }
@@ -150,7 +158,7 @@ export function withRecomputedOverallReadiness(
 ): CoreDocumentsValidationSnapshot {
   return {
     ...snapshot,
-    overallReadiness: computeOverallReadiness(snapshot.perDocument),
+    overallReadiness: computeOverallReadiness(snapshot.perDocument)
   };
 }
 
@@ -172,15 +180,15 @@ export function isCoreDocsAgentApproved(
 export function markCoreDocsAgentApproved(
   snapshot: CoreDocumentsValidationSnapshot
 ): CoreDocumentsValidationSnapshot {
-  const updatedPerDoc = snapshot.perDocument.map((doc) => ({
+  const updatedPerDoc = snapshot.perDocument.map(doc => ({
     ...doc,
-    readiness: DocumentReadinessLevel.AgentApproved,
+    readiness: DocumentReadinessLevel.AgentApproved
   }));
 
   return {
     ...snapshot,
     perDocument: updatedPerDoc,
     overallReadiness: DocumentReadinessLevel.AgentApproved,
-    lastValidatedAt: new Date().toISOString(),
+    lastValidatedAt: new Date().toISOString()
   };
 }

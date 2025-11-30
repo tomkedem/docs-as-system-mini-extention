@@ -51,6 +51,10 @@
         "title": "Docs-as-System mini: Validate project"
       },
       {
+        "command": "docsAsSystemMini.validateCoreDocs",
+        "title": "Docs-as-System mini: Validate core documents"
+      },
+      {
         "command": "docsAsSystemMini.runFullCycle",
         "title": "Docs-as-System mini: Run full cycle"
       },
