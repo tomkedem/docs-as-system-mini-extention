@@ -51,7 +51,9 @@
       return;
     }
 
+    const hasOk = typeof message.ok === "boolean";
     const ok = !!message.ok;
+
     const textEl = document.querySelector('[data-status-text="project"]');
     const iconEl = document.querySelector(
       '[data-validation-icon="project"]'
@@ -68,6 +70,13 @@
       textEl.textContent =
         "Project structure has issues. Open the Output panel for details.";
       setValidationIcon(iconEl, "failed");
+    }
+
+    // Update Init button status icon (✔ / ✖) if the span exists
+    if (hasOk) {
+      updateInitButtonStatus(ok);
+    } else {
+      updateInitButtonStatus(null);
     }
   }
 
@@ -92,6 +101,26 @@
           img.src = pending;
         }
         break;
+    }
+  }
+
+  // חיווי בכפתור Init עצמו
+  function updateInitButtonStatus(state) {
+    const iconSpan = document.getElementById("init-status-icon");
+    if (!iconSpan) {
+      return;
+    }
+
+    // מצב ניטרלי ברירת מחדל
+    iconSpan.textContent = "";
+    iconSpan.className = "btn-status-icon";
+
+    if (state === true) {
+      iconSpan.textContent = "✔";
+      iconSpan.className = "btn-status-icon btn-status-ok";
+    } else if (state === false) {
+      iconSpan.textContent = "✖";
+      iconSpan.className = "btn-status-icon btn-status-bad";
     }
   }
 

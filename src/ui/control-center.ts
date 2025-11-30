@@ -307,11 +307,14 @@ function getWebviewContent(
           </div>
           <div class="docs-buttons-row">
             <button class="btn" data-button-id="init-project">
+              <span class="btn-status-icon" id="init-status-icon"></span>
               <span class="btn-label-main">
                 Initialize or repair project
               </span>
               <span class="btn-key">Init</span>
             </button>
+
+
             <button class="btn" data-button-id="open-quick-start">
               <span class="btn-label-main">
                 Open Quick Start guide

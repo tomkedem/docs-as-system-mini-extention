@@ -215,7 +215,21 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
 }
+
+.btn-status-ok {
+  color: rgba(34, 197, 94, 0.9);
+}
+
+.btn-status-bad {
+  color: rgba(239, 68, 68, 0.9);
+}
+
+
 
 /* Core docs status line */
 
