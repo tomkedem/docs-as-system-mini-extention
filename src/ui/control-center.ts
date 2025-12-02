@@ -91,6 +91,49 @@ export function openControlCenter(context: vscode.ExtensionContext) {
         return;
       }
 
+             // Webview asks to open a specific document and line
+      if (message.type === "openDocLocation") {
+        const relativePath = String(message.relativePath ?? "");
+        const line = typeof message.line === "number" ? message.line : 0;
+
+        if (!relativePath) {
+          return;
+        }
+
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) {
+          vscode.window.showWarningMessage(
+            "Cannot open document location because no workspace is open."
+          );
+          return;
+        }
+
+        const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
+
+        try {
+          const doc = await vscode.workspace.openTextDocument(fileUri);
+          const editor = await vscode.window.showTextDocument(doc, {
+            preview: false
+          });
+
+          const safeLine = Math.max(0, Math.min(line, doc.lineCount - 1));
+          const position = new vscode.Position(safeLine, 0);
+          const range = new vscode.Range(position, position);
+
+          editor.selection = new vscode.Selection(position, position);
+          editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
+        } catch (err) {
+          const messageText =
+            err instanceof Error ? err.message : String(err);
+          vscode.window.showWarningMessage(
+            `Could not open "${relativePath}": ${messageText}`
+          );
+        }
+
+        return;
+      }
+
+
       // Button click from the webview
       if (message.type === "click") {
         const id = String(message.buttonId ?? "");

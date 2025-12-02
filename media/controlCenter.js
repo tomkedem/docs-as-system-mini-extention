@@ -389,6 +389,42 @@
         details.textContent = issue.details;
       }
 
+      // Attach section path to the card for navigation
+      if (issue.sectionPath) {
+        card.dataset.sectionPath = issue.sectionPath;
+      }
+
+      // When the user clicks the issue card, ask the extension to open the file and line
+      card.addEventListener("click", () => {
+        const sectionPath = card.dataset.sectionPath;
+        if (!sectionPath) {
+          return;
+        }
+
+        // Expected format from buildSectionPath: "docs/project/FILE.mini.md:LINE"
+        const parts = sectionPath.split(":");
+        const relativePath = parts[0];
+        let line = 0;
+
+        if (parts.length > 1) {
+          const parsed = parseInt(parts[1], 10);
+          if (!Number.isNaN(parsed) && parsed >= 0) {
+            line = parsed;
+          }
+        }
+
+        // Basic sanity check to avoid sending weird values
+        if (!relativePath.endsWith(".md")) {
+          return;
+        }
+
+        vscode.postMessage({
+          type: "openDocLocation",
+          relativePath,
+          line
+        });
+      });
+
       card.appendChild(header);
       if (meta.textContent) {
         card.appendChild(meta);
@@ -399,6 +435,7 @@
 
       issuesEl.appendChild(card);
     });
+
   }
 
   function updateCoreDocsStatus() {

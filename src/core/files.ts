@@ -13,6 +13,23 @@ export interface TemplateFile {
 
 // Template files to download into the workspace
 export const TEMPLATE_FILES: TemplateFile[] = [
+  // automation scripts
+  {
+    src: "docs/automation/CREATE_BRANCH.sh",
+    dest: "docs/automation/CREATE_BRANCH.sh"
+  },
+  {
+    src: "docs/automation/OPEN_PULL_REQUEST.sh",
+    dest: "docs/automation/OPEN_PULL_REQUEST.sh"
+  },
+  {
+    src: "docs/automation/PUSH_BRANCH.sh",
+    dest: "docs/automation/PUSH_BRANCH.sh"
+  },
+  {
+    src: "docs/automation/STAGE_AND_COMMIT.sh",
+    dest: "docs/automation/STAGE_AND_COMMIT.sh"
+  },
   // project docs - editable project documents
   {
     src: "docs/project/BUSINESS_REQUIREMENTS.mini.md",
