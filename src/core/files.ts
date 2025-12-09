@@ -36,8 +36,8 @@ export const TEMPLATE_FILES: TemplateFile[] = [
     dest: "docs/project/BUSINESS_REQUIREMENTS.mini.md"
   },
   {
-    src: "docs/project/PROJECT_SPEC.mini.md",
-    dest: "docs/project/PROJECT_SPEC.mini.md"
+    src: "docs/project/PROJECT_SPECIFICATION.mini.md",
+    dest: "docs/project/PROJECT_SPECIFICATION.mini.md"
   },
   {
     src: "docs/project/ARCHITECTURE_BLUEPRINT.mini.md",
@@ -54,8 +54,8 @@ export const TEMPLATE_FILES: TemplateFile[] = [
     dest: "templates/project/BUSINESS_REQUIREMENTS_TEMPLATE.mini.md"
   },
   {
-    src: "templates/project/PROJECT_SPEC_TEMPLATE.mini.md",
-    dest: "templates/project/PROJECT_SPEC_TEMPLATE.mini.md"
+    src: "templates/project/PROJECT_SPECIFICATION_TEMPLATE.mini.md",
+    dest: "templates/project/PROJECT_SPECIFICATION_TEMPLATE.mini.md"
   },
   {
     src: "templates/project/ARCHITECTURE_BLUEPRINT_TEMPLATE.mini.md",
@@ -153,13 +153,13 @@ export const TEMPLATE_FILES: TemplateFile[] = [
 export const REQUIRED_FILES: string[] = [
   // editable project docs
   "docs/project/BUSINESS_REQUIREMENTS.mini.md",
-  "docs/project/PROJECT_SPEC.mini.md",
+  "docs/project/PROJECT_SPECIFICATION.mini.md",
   "docs/project/ARCHITECTURE_BLUEPRINT.mini.md",
   "docs/project/IMPLEMENTATION_PLAN.mini.md",
 
   // project templates - used as reference for validation
   "templates/project/BUSINESS_REQUIREMENTS_TEMPLATE.mini.md",
-  "templates/project/PROJECT_SPEC_TEMPLATE.mini.md",
+  "templates/project/PROJECT_SPECIFICATION_TEMPLATE.mini.md",
   "templates/project/ARCHITECTURE_BLUEPRINT_TEMPLATE.mini.md",
   "templates/project/IMPLEMENTATION_PLAN_TEMPLATE.mini.md",
 

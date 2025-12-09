@@ -609,7 +609,7 @@ function mapCoreDocsSnapshotToUi(
 
 const CORE_DOC_PATHS: Record<CoreDocumentKind, string> = {
   "business-requirements": "docs/project/BUSINESS_REQUIREMENTS.mini.md",
-  "project-spec": "docs/project/PROJECT_SPEC.mini.md",
+  "project-spec": "docs/project/PROJECT_SPECIFICATION.mini.md",
   "architecture-blueprint":
     "docs/project/ARCHITECTURE_BLUEPRINT.mini.md",
   "implementation-plan": "docs/project/IMPLEMENTATION_PLAN.mini.md"
